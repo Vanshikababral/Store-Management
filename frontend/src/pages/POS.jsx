@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 import QuickPOS from '../components/QuickPOS';
@@ -38,35 +38,25 @@ const handleSaleComplete = async (cart) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     
-    // 1. STOCK VALIDATION: Pre-check before calling API
-    for (const item of cart) {
-      const product = products.find(p => p.id === item.id);
-      if (product.stock < item.qty) {
-        showNotify(`ASSET DEPLETED: ${item.name} has insufficient stock.`);
-        return; // Halt transaction
-      }
-    }
+    // 1. OPTIMIZED TRANSACTION: Rely on Atomic Backend Logic
+    // We send a POST to /sales/ for each item. 
+    // The backend now handles stock reduction atomically.
+    const saleRequests = cart.map(item => 
+      axios.post(`${API_URL}sales/`, {
+        product_name: item.name,
+        quantity: item.qty,
+        total_price: (item.price * item.qty).toFixed(2)
+      }, config)
+    );
 
-    // 2. OPTIMIZED PROMISES
-    const transactions = cart.map(item => {
-      const product = products.find(p => p.id === item.id);
-      return [
-        axios.patch(`${API_URL}products/${item.id}/`, { stock: product.stock - item.qty }, config),
-        axios.post(`${API_URL}sales/`, {
-          product_name: item.name,
-          quantity: item.qty,
-          total_price: (item.price * item.qty).toFixed(2)
-        }, config)
-      ];
-    }).flat();
-
-    await Promise.all(transactions);
+    await Promise.all(saleRequests);
     
     fetchData();
     showNotify("TRANSACTION LOGGED & INVENTORY UPDATED");
   } catch (err) {
     console.error("Transaction failed:", err);
-    showNotify("CRITICAL ERROR: Data not synced");
+    const errorMsg = err.response?.data?.non_field_errors?.[0] || err.response?.data?.error || "CRITICAL ERROR: Data not synced";
+    showNotify(errorMsg.toUpperCase());
   }
 };
 

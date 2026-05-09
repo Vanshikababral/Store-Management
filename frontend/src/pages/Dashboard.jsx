@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 import { LayoutDashboard, Database, ShieldCheck, Plus } from 'lucide-react';
@@ -9,6 +9,7 @@ import SupplyAlerts from '../components/SupplyAlerts';
 import CategoryBreakdown from '../components/CategoryBreakdown';
 import SalesChart from '../components/SalesChart';
 import QuickSaleModal from '../components/QuickSaleModal';
+import AIAssistant from '../components/AIAssistant';
 
 const Dashboard = ({ token }) => {
   const [products, setProducts] = useState([]);
@@ -100,12 +101,15 @@ const Dashboard = ({ token }) => {
       </div>
 
       {/* LOWER GRID: Focusing on Risk and Stock rather than transactions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
           <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
              Supply_Risk_Alerts
           </h3>
           <SupplyAlerts products={products} />
+        </div>
+        <div className="lg:col-span-1">
+          <AIAssistant token={token} />
         </div>
       </div>
 

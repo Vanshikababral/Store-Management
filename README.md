@@ -39,16 +39,14 @@
 ## ✨ Features
 
 ### 🖥️ Executive Dashboard
-
 - Real-time revenue, sales count, and inventory health metrics
+- **Matrix AI Brain** — Autonomous strategic assistant powered by Gemini 1.5 for real-time business insights
 - Interactive sales charts powered by Recharts
 - Low-stock supply alerts
-- Category-wise inventory breakdown
-- Quick sale modal for fast transactions
 
 ### 🛒 Smart POS Terminal
-
 - Visual product selection with stock-aware logic
+- **Atomic Transactions** — Row-level database locking to ensure zero race conditions during concurrent checkouts
 - Multi-item cart with real-time total calculations
 - GST tax computation (CGST + SGST breakdown)
 - Auto-generated thermal-style receipt with print support

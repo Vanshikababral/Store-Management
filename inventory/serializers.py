@@ -36,6 +36,42 @@ class SaleSerializer(serializers.ModelSerializer):
         model = Sale
         fields = '__all__'
 
+    def validate(self, data):
+        """
+        Check that the product exists and there's enough stock.
+        """
+        product_name = data.get('product_name')
+        quantity = data.get('quantity')
+
+        try:
+            product = Product.objects.get(name=product_name)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError(f"Product '{product_name}' does not exist.")
+
+        if product.stock < quantity:
+            raise serializers.ValidationError(f"Insufficient stock for '{product_name}'. Available: {product.stock}")
+
+        # Attach the product object to the data so we can use it in create()
+        data['product_obj'] = product
+        return data
+
+    def create(self, validated_data):
+        """
+        Reduce stock atomically and create the sale record.
+        """
+        from django.db import transaction
+        
+        product = validated_data.pop('product_obj')
+        quantity = validated_data.get('quantity')
+
+        with transaction.atomic():
+            # Refresh from DB and lock the row for update to prevent race conditions
+            product = Product.objects.select_for_update().get(pk=product.pk)
+            product.stock -= quantity
+            product.save()
+            
+            return super().create(validated_data)
+
 #The "Staff Fix" Serializer
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
